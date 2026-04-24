@@ -25,7 +25,6 @@ interface PinnedLocation {
 }
 
 export default function App() {
-  const { location, error, isTracking } = useGeolocation();
   
   // Load initial settings from localStorage
   const getInitialLanguage = (): Language => {
@@ -48,6 +47,11 @@ export default function App() {
     return saved === 'true';
   };
 
+  const getInitialShowCompass = (): boolean => {
+    const saved = localStorage.getItem('bussnooze_showcompass');
+    return saved === 'true';
+  };
+
   const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
   const [destinationName, setDestinationName] = useState<string>("");
   const [radius, setRadius] = useState(getInitialRadius);
@@ -60,7 +64,10 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showHowToInstall, setShowHowToInstall] = useState(false);
   const [keepAwake, setKeepAwake] = useState(getInitialKeepAwake);
+  const [showCompass, setShowCompass] = useState(getInitialShowCompass);
   const wakeLockRef = useRef<any>(null);
+
+  const { location, error, isTracking } = useGeolocation(showCompass);
 
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,6 +93,10 @@ export default function App() {
     localStorage.setItem('bussnooze_keepawake', keepAwake.toString());
     toggleWakeLock(keepAwake);
   }, [keepAwake]);
+
+  useEffect(() => {
+    localStorage.setItem('bussnooze_showcompass', showCompass.toString());
+  }, [showCompass]);
 
   // Handle setting keepAwake state and preference 
   // Initial wake lock if enabled
@@ -238,11 +249,14 @@ export default function App() {
   }, []);
 
   // Calculate distance whenever location or destination changes
+  const userLat = location?.latitude;
+  const userLng = location?.longitude;
+
   useEffect(() => {
-    if (location && location.latitude !== null && location.longitude !== null && destination) {
+    if (userLat !== null && userLat !== undefined && userLng !== null && userLng !== undefined && destination) {
       const d = calculateDistance(
-        location.latitude,
-        location.longitude,
+        userLat,
+        userLng,
         destination.latitude,
         destination.longitude
       );
@@ -259,7 +273,7 @@ export default function App() {
     } else {
       setDistance(null);
     }
-  }, [location, destination, isAlarmActive, radius, isAlarmTriggered, startAlarmSound]);
+  }, [userLat, userLng, destination, isAlarmActive, radius, isAlarmTriggered, startAlarmSound]);
 
   const toggleAlarm = () => {
     initAudio();
@@ -415,6 +429,7 @@ export default function App() {
             onDestinationSelect={(lat, lng) => setDestination({ latitude: lat, longitude: lng })}
             radius={radius}
             language={language}
+            showCompass={showCompass}
           />
         </div>
 
@@ -576,6 +591,25 @@ export default function App() {
                       <div className={cn(
                         "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
                         keepAwake ? "left-7" : "left-1"
+                      )} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{t.show_compass}</h4>
+                      <p className="text-xs text-slate-500">{t.show_compass_desc}</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowCompass(!showCompass)}
+                      className={cn(
+                        "w-12 h-6 rounded-full transition-colors relative",
+                        showCompass ? "bg-blue-600" : "bg-slate-300"
+                      )}
+                    >
+                      <div className={cn(
+                        "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
+                        showCompass ? "left-7" : "left-1"
                       )} />
                     </button>
                   </div>

@@ -28,40 +28,57 @@ interface MapProps {
     latitude: number | null; 
     longitude: number | null; 
     heading?: number | null;
+    compassHeading?: number | null;
   } | null;
   destination: { latitude: number; longitude: number } | null;
   onDestinationSelect: (lat: number, lng: number) => void;
   radius: number;
   language: Language;
+  showCompass?: boolean;
 }
 
-// Custom Google Maps style blue dot
-const createUserIcon = () => {
+// Custom Google Maps style blue dot with optional beam
+const createUserIcon = (heading: number | null | undefined, compassHeading: number | null | undefined, showCompass: boolean = false) => {
+  const rotation = heading ?? compassHeading ?? 0;
+  const showBeam = showCompass && ((compassHeading !== undefined && compassHeading !== null) || (heading !== undefined && heading !== null));
+
   return L.divIcon({
     className: 'custom-user-marker',
     html: `
-      <div class="relative flex items-center justify-center pointer-events-none" style="width: 60px; height: 60px;">
-        <!-- Outer Pulse -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-blue-500/20 rounded-full animate-pulse-slow"></div>
+      <div class="relative flex items-center justify-center pointer-events-none" style="width: 120px; height: 120px;">
+        <!-- Directional Beam -->
+        ${showBeam ? `
+          <div class="absolute transition-transform duration-500 ease-out" 
+               style="transform: rotate(${rotation}deg); bottom: 50%; left: 50%; width: 140px; height: 140px; margin-left: -70px; transform-origin: center bottom; z-index: 0;">
+            <div class="w-full h-full bg-gradient-to-t from-blue-500/50 via-blue-500/5 to-transparent" 
+                 style="clip-path: polygon(50% 100%, 15% 0%, 85% 0%); filter: blur(3px);"></div>
+          </div>
+        ` : ''}
         
-        <!-- Main Dot Container -->
-        <div class="relative w-6 h-6 bg-white rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center border border-white/50">
-          <!-- The Blue Dot -->
-          <div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]"></div>
+        <!-- Center Point Container -->
+        <div class="absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+          <!-- Outer Pulse -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-blue-500/20 rounded-full animate-pulse-slow"></div>
+          
+          <!-- Main Dot Container -->
+          <div class="relative w-6 h-6 bg-white rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center border border-white/50">
+            <!-- The Blue Dot -->
+            <div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]"></div>
+          </div>
         </div>
       </div>
     `,
-    iconSize: [60, 60],
-    iconAnchor: [30, 30],
+    iconSize: [120, 120],
+    iconAnchor: [60, 60],
   });
 };
 
-const UserLocationMarker = ({ location }: { location: MapProps['currentLocation'] }) => {
+const UserLocationMarker = ({ location, showCompass }: { location: MapProps['currentLocation'], showCompass?: boolean }) => {
   if (!location || location.latitude === null || location.longitude === null) return null;
   return (
     <Marker 
       position={[location.latitude, location.longitude]} 
-      icon={createUserIcon()}
+      icon={createUserIcon(location.heading, location.compassHeading, showCompass)}
       zIndexOffset={1000}
     />
   );
@@ -84,7 +101,7 @@ function LocationPicker({ onSelect }: { onSelect: (lat: number, lng: number) => 
   return null;
 }
 
-export default function MapComponent({ currentLocation, destination, onDestinationSelect, radius, language }: MapProps) {
+export default function MapComponent({ currentLocation, destination, onDestinationSelect, radius, language, showCompass }: MapProps) {
   const t = translations[language];
   const mapRef = useRef<any>(null);
 
@@ -127,7 +144,7 @@ export default function MapComponent({ currentLocation, destination, onDestinati
         
         {currentLocation && currentLocation.latitude !== null && currentLocation.longitude !== null && (
           <>
-            <UserLocationMarker location={currentLocation} />
+            <UserLocationMarker location={currentLocation} showCompass={showCompass} />
             <MapUpdater center={[currentLocation.latitude, currentLocation.longitude]} />
           </>
         )}

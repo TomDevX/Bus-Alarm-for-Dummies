@@ -5,9 +5,10 @@ interface Location {
   longitude: number | null;
   accuracy?: number;
   heading?: number | null;
+  compassHeading?: number | null;
 }
 
-export function useGeolocation() {
+export function useGeolocation(compassEnabled: boolean = false) {
   const [location, setLocation] = useState<Location | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isTracking, setIsTracking] = useState(false);
@@ -54,6 +55,54 @@ export function useGeolocation() {
       stopTracking();
     };
   }, []);
+
+  useEffect(() => {
+    if (!compassEnabled) {
+      setLocation(prev => prev ? { ...prev, compassHeading: null } : null);
+      return undefined;
+    }
+
+    let lastHeading = 0;
+    const smoothingFactor = 0.15; // Slightly more smoothing for better battery (less frequent visual jitters)
+
+    const handleOrientation = (e: any) => {
+      let heading: number | null = null;
+      
+      if (e.webkitCompassHeading !== undefined) {
+        heading = e.webkitCompassHeading;
+      } else if (e.alpha !== null) {
+        heading = 360 - e.alpha;
+      }
+
+      if (heading !== null) {
+        const targetHeading = heading;
+        setLocation(prev => {
+          if (!prev) return { latitude: null, longitude: null, compassHeading: targetHeading };
+          
+          const currentLastHeading = prev.compassHeading ?? targetHeading;
+          
+          let diff = targetHeading - currentLastHeading;
+          if (diff > 180) diff -= 360;
+          if (diff < -180) diff += 360;
+          
+          const smoothed = (currentLastHeading + diff * smoothingFactor + 360) % 360;
+          
+          // Optimization: Only update if change is significant (> 1 degree)
+          if (Math.abs(diff) < 1 && prev.compassHeading !== null) return prev;
+
+          return { ...prev, compassHeading: Math.round(smoothed) };
+        });
+      }
+    };
+
+    const win = window as any;
+    const eventType = 'ondeviceorientationabsolute' in win ? 'deviceorientationabsolute' : 'deviceorientation';
+    window.addEventListener(eventType, handleOrientation, true);
+    
+    return () => {
+      window.removeEventListener(eventType, handleOrientation, true);
+    };
+  }, [compassEnabled]);
 
   return { location, error, isTracking };
 }
