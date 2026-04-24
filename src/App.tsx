@@ -376,7 +376,7 @@ export default function App() {
     setDestination({ latitude: pin.latitude, longitude: pin.longitude });
     setDestinationName(pin.name);
     setShowSettings(false);
-  };
+  };  
 
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 overflow-hidden font-sans">
@@ -385,11 +385,11 @@ export default function App() {
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100">
             <img 
-              src="https://github.com/TomDevX/Bus-Alarm-for-Dummies/blob/main/public/icon.png" 
+              src="https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png" 
               alt="BusSnooze Logo" 
               className="w-full h-full object-cover" 
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://img.icons8.com/3d-fluency/512/bus.png";
+                (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png";
               }}
             />
           </div>
@@ -567,11 +567,11 @@ export default function App() {
                 <div className="absolute inset-0 bg-blue-100 rounded-3xl animate-ping opacity-20"></div>
                 <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 w-24 h-24 rounded-[2rem] flex items-center justify-center border-4 border-white shadow-xl overflow-hidden">
                   <img 
-                    src="/icon.png" 
+                    src="https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png" 
                     alt="BusSnooze Icon" 
                     className="w-full h-full object-cover" 
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://img.icons8.com/3d-fluency/512/bus.png";
+                      (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png";
                     }}
                   />
                 </div>
