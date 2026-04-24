@@ -37,7 +37,7 @@ interface MapProps {
   showCompass?: boolean;
 }
 
-// Custom Google Maps style blue dot with optional beam
+// Custom modern GPS blue dot with optional beam
 const createUserIcon = (heading: number | null | undefined, compassHeading: number | null | undefined, showCompass: boolean = false) => {
   const rotation = heading ?? compassHeading ?? 0;
   const showBeam = showCompass && ((compassHeading !== undefined && compassHeading !== null) || (heading !== undefined && heading !== null));

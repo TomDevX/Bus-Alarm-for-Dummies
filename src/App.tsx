@@ -52,9 +52,15 @@ export default function App() {
     return saved === 'true';
   };
 
+  const getInitialVolume = () => {
+    const saved = localStorage.getItem('bussnooze_volume');
+    return saved ? parseFloat(saved) : 1.0;
+  };
+
   const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
   const [destinationName, setDestinationName] = useState<string>("");
   const [radius, setRadius] = useState(getInitialRadius);
+  const [volume, setVolume] = useState(getInitialVolume);
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const t = translations[language];
   const [pinnedLocations, setPinnedLocations] = useState<PinnedLocation[]>(getInitialPins);
@@ -75,6 +81,9 @@ export default function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   // Persist settings
   useEffect(() => {
@@ -97,6 +106,16 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('bussnooze_showcompass', showCompass.toString());
   }, [showCompass]);
+
+  useEffect(() => {
+    localStorage.setItem('bussnooze_volume', volume.toString());
+    if (gainNodeRef.current) {
+      gainNodeRef.current.gain.value = volume;
+    } else if (audioRef.current) {
+      // Fallback if Web Audio not initialized yet
+      audioRef.current.volume = Math.min(volume, 1.0);
+    }
+  }, [volume]);
 
   // Handle setting keepAwake state and preference 
   // Initial wake lock if enabled
@@ -199,12 +218,41 @@ export default function App() {
   // Initialize Audio on user interaction
   const initAudio = useCallback(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('https://raw.githubusercontent.com/TomDevX/bus-alarm/main/alarm.mp3');
-      audioRef.current.loop = true;
-      audioRef.current.preload = 'auto';
-      audioRef.current.load();
+      const audio = new Audio('https://raw.githubusercontent.com/TomDevX/bus-alarm/main/alarm.mp3');
+      audio.loop = true;
+      audio.preload = 'auto';
+      audio.crossOrigin = "anonymous"; // Needed for Web Audio API across domains
+      audioRef.current = audio;
+      
+      // Initialize Web Audio API for volume boost
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const context = new AudioContextClass();
+        const gainNode = context.createGain();
+        const source = context.createMediaElementSource(audio);
+        
+        source.connect(gainNode);
+        gainNode.connect(context.destination);
+        
+        audioContextRef.current = context;
+        gainNodeRef.current = gainNode;
+        sourceRef.current = source;
+        
+        gainNode.gain.value = volume;
+      } catch (err) {
+        console.error("Web Audio API error:", err);
+        // Fallback to simple audio volume
+        audio.volume = Math.min(volume, 1.0);
+      }
+      
+      audio.load();
+    } else {
+      // Resume context if suspended (common in browsers)
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume();
+      }
     }
-  }, []);
+  }, [volume]);
 
   // "Warm up" audio to prevent delay on first play
   useEffect(() => {
@@ -659,6 +707,25 @@ export default function App() {
                     <div className="flex justify-between mt-2 text-xs font-medium text-slate-400">
                       <span>100m</span>
                       <span>2km</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
+                      {t.alarm_volume}: <span className="text-blue-600">{Math.round(volume * 100)}%</span>
+                    </label>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="2" 
+                      step="0.1"
+                      value={volume}
+                      onChange={(e) => setVolume(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <div className="flex justify-between mt-2 text-xs font-medium text-slate-400">
+                      <span>0%</span>
+                      <span>200%</span>
                     </div>
                   </div>
 
