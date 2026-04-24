@@ -31,25 +31,36 @@ interface MapProps {
   language: Language;
 }
 
-// Custom arrow icon for current location
+// Custom Google Maps style blue dot with beam
 const createUserIcon = (heading: number | null | undefined) => {
   const rotation = heading || 0;
+  const showBeam = heading !== undefined && heading !== null;
+  
   return L.divIcon({
     className: 'custom-user-marker',
     html: `
-      <div style="transform: rotate(${rotation}deg); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-        <div style="
-          width: 0;
-          height: 0;
-          border-left: 10px solid transparent;
-          border-right: 10px solid transparent;
-          border-bottom: 20px solid #3b82f6;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        "></div>
+      <div class="relative flex items-center justify-center" style="width: 64px; height: 64px;">
+        <!-- Directional Beam -->
+        ${showBeam ? `
+          <div class="absolute w-32 h-32 origin-bottom transition-transform duration-500" 
+               style="transform: translateY(-16px) rotate(${rotation}deg); bottom: 50%;">
+            <div class="w-full h-full bg-gradient-to-t from-blue-500/40 to-transparent" 
+                 style="clip-path: polygon(50% 100%, 15% 0%, 85% 0%);"></div>
+          </div>
+        ` : ''}
+        
+        <!-- Outer Pulse -->
+        <div class="absolute w-8 h-8 bg-blue-500/20 rounded-full animate-ping"></div>
+        
+        <!-- Main Dot Container -->
+        <div class="relative w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center">
+          <!-- The Blue Dot -->
+          <div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-inner"></div>
+        </div>
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [64, 64],
+    iconAnchor: [32, 32],
   });
 };
 
@@ -84,10 +95,24 @@ export default function MapComponent({ currentLocation, destination, onDestinati
   const t = translations[language];
   const defaultCenter: [number, number] = currentLocation 
     ? [currentLocation.latitude, currentLocation.longitude] 
-    : [0, 0];
+    : [10.762622, 106.660172]; // Default to HCMC
 
   return (
     <div className="h-full w-full relative overflow-hidden rounded-2xl shadow-inner bg-slate-200">
+      <style>{`
+        .custom-user-marker {
+          transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        .animate-ping {
+          animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+      `}</style>
       <MapContainer
         center={defaultCenter}
         zoom={13}
