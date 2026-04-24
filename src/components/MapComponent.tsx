@@ -1,10 +1,14 @@
 import { MapContainer, TileLayer, Marker, useMapEvents, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect } from 'react';
+import { translations, Language } from '../translations';
 
 // Fix for default marker icons in Leaflet with React
+// @ts-ignore
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
+// @ts-ignore
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+// @ts-ignore
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 const DefaultIcon = L.icon({
@@ -24,6 +28,7 @@ interface MapProps {
   destination: { latitude: number; longitude: number } | null;
   onDestinationSelect: (lat: number, lng: number) => void;
   radius: number;
+  language: Language;
 }
 
 // Custom arrow icon for current location
@@ -75,7 +80,8 @@ function LocationPicker({ onSelect }: { onSelect: (lat: number, lng: number) => 
   return null;
 }
 
-export default function MapComponent({ currentLocation, destination, onDestinationSelect, radius }: MapProps) {
+export default function MapComponent({ currentLocation, destination, onDestinationSelect, radius, language }: MapProps) {
+  const t = translations[language];
   const defaultCenter: [number, number] = currentLocation 
     ? [currentLocation.latitude, currentLocation.longitude] 
     : [0, 0];
@@ -120,8 +126,8 @@ export default function MapComponent({ currentLocation, destination, onDestinati
         <LocationPicker onSelect={onDestinationSelect} />
       </MapContainer>
       
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg text-xs font-medium text-slate-600 border border-slate-200">
-        Tap on map to set destination
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg text-xs font-medium text-slate-600 border border-slate-200 text-center whitespace-nowrap">
+        {t.direction_hint}
       </div>
     </div>
   );

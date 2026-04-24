@@ -4,11 +4,12 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Bell, BellOff, Navigation, Settings, Info, AlertTriangle, Bus, Search, X, Loader2, Smartphone } from 'lucide-react';
+import { MapPin, Bell, BellOff, Navigation, Settings, Info, AlertTriangle, Bus, Search, X, Loader2, Smartphone, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MapComponent from './components/MapComponent';
 import { useGeolocation, calculateDistance } from './hooks/useGeolocation';
 import { cn } from './lib/utils';
+import { Language, translations } from './translations';
 
 interface SearchResult {
   display_name: string;
@@ -27,6 +28,11 @@ export default function App() {
   const { location, error, isTracking } = useGeolocation();
   
   // Load initial settings from localStorage
+  const getInitialLanguage = (): Language => {
+    const saved = localStorage.getItem('bussnooze_lang');
+    return (saved as Language) || 'en';
+  };
+
   const getInitialRadius = () => {
     const saved = localStorage.getItem('bussnooze_radius');
     return saved ? parseInt(saved) : 500;
@@ -40,6 +46,8 @@ export default function App() {
   const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
   const [destinationName, setDestinationName] = useState<string>("");
   const [radius, setRadius] = useState(getInitialRadius);
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
+  const t = translations[language];
   const [pinnedLocations, setPinnedLocations] = useState<PinnedLocation[]>(getInitialPins);
   const [isAlarmActive, setIsAlarmActive] = useState(false);
   const [isAlarmTriggered, setIsAlarmTriggered] = useState(false);
@@ -58,6 +66,10 @@ export default function App() {
   const oscillatorRef = useRef<OscillatorNode | null>(null);
 
   // Persist settings
+  useEffect(() => {
+    localStorage.setItem('bussnooze_lang', language);
+  }, [language]);
+
   useEffect(() => {
     localStorage.setItem('bussnooze_radius', radius.toString());
   }, [radius]);
@@ -83,7 +95,7 @@ export default function App() {
         setKeepAwake(false);
       }
     } else {
-      alert("Trình duyệt của bạn không hỗ trợ tính năng Giữ màn hình sáng.");
+      alert(t.wake_lock_unsupported);
     }
   };
 
@@ -222,7 +234,7 @@ export default function App() {
       stopAlarmSound();
     } else {
       if (!destination) {
-        alert("Please set a destination on the map first!");
+        alert(t.set_destination_alert);
         return;
       }
       setIsAlarmActive(true);
@@ -245,7 +257,7 @@ export default function App() {
     );
     
     if (exists) {
-      alert("Địa điểm này đã được lưu!");
+      alert(t.already_pinned);
       return;
     }
 
@@ -277,19 +289,20 @@ export default function App() {
           <div className="bg-blue-600 p-2 rounded-xl">
             <Bus className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-800">BusSnooze</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-800">{t.app_name}</h1>
         </div>
         <div className="flex items-center gap-1">
           <button 
             onClick={() => setShowHowToInstall(true)}
             className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
-            title="Install on phone"
+            title={t.how_to_use}
           >
             <Smartphone className="w-6 h-6" />
           </button>
           <button 
             onClick={() => setShowSettings(!showSettings)}
             className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
+            title={t.settings}
           >
             <Settings className="w-6 h-6" />
           </button>
@@ -307,7 +320,7 @@ export default function App() {
               </div>
               <input 
                 type="text" 
-                placeholder="Search destination..." 
+                placeholder={t.search_placeholder} 
                 className="flex-1 bg-transparent px-3 py-3 text-sm focus:outline-none text-slate-800"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -326,7 +339,7 @@ export default function App() {
                 disabled={isSearching}
                 className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
+                {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : t.search_button}
               </button>
             </div>
 
@@ -340,7 +353,7 @@ export default function App() {
                   className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-60 overflow-y-auto"
                 >
                   {isSearching ? (
-                    <div className="p-4 text-center text-slate-500 text-sm">Searching...</div>
+                    <div className="p-4 text-center text-slate-500 text-sm">{t.searching}</div>
                   ) : (
                     searchResults.map((result, idx) => (
                       <button
@@ -366,6 +379,7 @@ export default function App() {
             destination={destination}
             onDestinationSelect={(lat, lng) => setDestination({ latitude: lat, longitude: lng })}
             radius={radius}
+            language={language}
           />
         </div>
 
@@ -381,7 +395,7 @@ export default function App() {
               <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Destination Set</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{t.destination_set}</p>
                     <div className="flex items-center gap-2 text-slate-700">
                       <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
                       <span className="font-medium truncate max-w-[200px]">
@@ -390,7 +404,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Distance</p>
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{t.distance}</p>
                     <p className="text-2xl font-black text-slate-800">
                       {distance !== null ? (distance < 1000 ? `${Math.round(distance)}m` : `${(distance/1000).toFixed(1)}km`) : '--'}
                     </p>
@@ -410,12 +424,12 @@ export default function App() {
                     {isAlarmActive ? (
                       <>
                         <BellOff className="w-5 h-5" />
-                        Dừng báo thức
+                        {t.deactivate_alarm}
                       </>
                     ) : (
                       <>
                         <Bell className="w-5 h-5" />
-                        Bật báo thức
+                        {t.activate_alarm}
                       </>
                     )}
                   </button>
@@ -423,7 +437,7 @@ export default function App() {
                   <button
                     onClick={pinLocation}
                     className="p-4 bg-slate-100 text-slate-500 rounded-2xl hover:bg-slate-200 transition-colors shadow-inner"
-                    title="Lưu địa điểm"
+                    title={t.save_location}
                   >
                     <MapPin className="w-6 h-6 fill-current" />
                   </button>
@@ -438,8 +452,8 @@ export default function App() {
           <div className="px-6 pb-8 text-center shrink-0">
             <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
               <Navigation className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-              <h3 className="font-bold text-slate-800 mb-1">Where are you going?</h3>
-              <p className="text-sm text-slate-500">Tap anywhere on the map to set your destination stop.</p>
+              <h3 className="font-bold text-slate-800 mb-1">{t.where_to}</h3>
+              <p className="text-sm text-slate-500">{t.tap_map}</p>
             </div>
           </div>
         )}
@@ -460,13 +474,15 @@ export default function App() {
               >
                 <Bell className="w-20 h-20 text-red-600" />
               </motion.div>
-              <h2 className="text-4xl font-black text-white mb-4">WAKE UP!</h2>
-              <p className="text-red-100 text-lg mb-12">You are within {radius}m of your destination.</p>
+              <h2 className="text-4xl font-black text-white mb-4">{t.wake_up}</h2>
+              <p className="text-red-100 text-lg mb-12">
+                {t.proximity_alert.replace('{radius}', radius.toString())}
+              </p>
               <button
                 onClick={handleStopAlarm}
                 className="w-full max-w-xs py-5 bg-white text-red-600 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-transform"
               >
-                I'M AWAKE
+                {t.stop_alarm}
               </button>
             </motion.div>
           )}
@@ -492,14 +508,14 @@ export default function App() {
                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8" />
                 <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                   <Settings className="w-6 h-6 text-blue-500" />
-                  Alarm Settings
+                  {t.alarm_settings}
                 </h2>
                 
                 <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                   <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
                     <div>
-                      <h4 className="font-bold text-slate-800 text-sm">Chế độ "Chống ngủ quên"</h4>
-                      <p className="text-xs text-slate-500">Giữ màn hình luôn sáng để GPS không bị ngắt.</p>
+                      <h4 className="font-bold text-slate-800 text-sm">{t.anti_sleep_mode}</h4>
+                      <p className="text-xs text-slate-500">{t.anti_sleep_desc}</p>
                     </div>
                     <button 
                       onClick={() => toggleWakeLock(!keepAwake)}
@@ -515,9 +531,38 @@ export default function App() {
                     </button>
                   </div>
 
+                  {/* Language Switcher */}
+                  <div className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest">
+                      {t.language}
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setLanguage('en')}
+                        className={cn(
+                          "py-3 rounded-xl border-2 font-bold transition-all text-sm flex items-center justify-center gap-2",
+                          language === 'en' ? "border-blue-600 bg-blue-50 text-blue-600" : "border-slate-100 text-slate-400"
+                        )}
+                      >
+                        <Globe className="w-4 h-4" />
+                        {t.english}
+                      </button>
+                      <button
+                        onClick={() => setLanguage('vi')}
+                        className={cn(
+                          "py-3 rounded-xl border-2 font-bold transition-all text-sm flex items-center justify-center gap-2",
+                          language === 'vi' ? "border-blue-600 bg-blue-50 text-blue-600" : "border-slate-100 text-slate-400"
+                        )}
+                      >
+                        <Globe className="w-4 h-4" />
+                        {t.vietnamese}
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
-                      Bán kính báo thức: <span className="text-blue-600">{radius} mét</span>
+                      {t.alarm_radius}: <span className="text-blue-600">{radius} {t.meters}</span>
                     </label>
                     <input 
                       type="range" 
@@ -537,7 +582,7 @@ export default function App() {
                   {/* Saved Locations */}
                   <div>
                     <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
-                      Địa điểm đã lưu ({pinnedLocations.length})
+                      {t.saved_locations} ({pinnedLocations.length})
                     </label>
                     {pinnedLocations.length > 0 ? (
                       <div className="space-y-2">
@@ -564,7 +609,7 @@ export default function App() {
                       </div>
                     ) : (
                       <div className="text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                        <p className="text-xs text-slate-400">Chưa có địa điểm nào được lưu.</p>
+                        <p className="text-xs text-slate-400">{t.no_saved_locations}</p>
                       </div>
                     )}
                   </div>
@@ -572,7 +617,9 @@ export default function App() {
                   <div className="bg-slate-50 p-4 rounded-2xl flex gap-3">
                     <Info className="w-5 h-5 text-blue-500 shrink-0" />
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      The alarm will trigger when you enter this radius. Larger radius is recommended for fast-moving buses.
+                      {language === 'en' 
+                        ? "The alarm will trigger when you enter this radius. Larger radius is recommended for fast-moving buses."
+                        : "Báo thức sẽ kêu khi bạn đi vào bán kính này. Nên để bán kính lớn hơn cho các xe buýt di chuyển nhanh."}
                     </p>
                   </div>
 
@@ -580,7 +627,7 @@ export default function App() {
                     <div className="bg-red-50 p-4 rounded-2xl flex gap-3 border border-red-100">
                       <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
                       <p className="text-xs text-red-600 leading-relaxed">
-                        Location Error: {error}. Please ensure GPS is enabled.
+                        {t.location_error.replace('{error}', error)}
                       </p>
                     </div>
                   )}
@@ -589,7 +636,7 @@ export default function App() {
                     onClick={() => setShowSettings(false)}
                     className="w-full py-4 bg-slate-800 text-white rounded-2xl font-bold mt-4 shadow-lg active:scale-95 transition-transform"
                   >
-                    Done
+                    {t.done}
                   </button>
                 </div>
               </motion.div>
@@ -614,7 +661,7 @@ export default function App() {
                 onClick={e => e.stopPropagation()}
               >
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-slate-800">Hướng dẫn sử dụng</h2>
+                  <h2 className="text-2xl font-bold text-slate-800">{t.how_to_use}</h2>
                   <button onClick={() => setShowHowToInstall(false)} className="p-1 hover:bg-slate-100 rounded-full">
                     <X className="w-6 h-6 text-slate-400" />
                   </button>
@@ -624,37 +671,37 @@ export default function App() {
                   <section>
                     <h3 className="font-bold text-blue-600 mb-2 flex items-center gap-2">
                       <span className="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                      Thiết lập Điểm đến
+                      {t.step_1_title}
                     </h3>
-                    <p className="text-sm">Tìm kiếm địa chỉ bằng thanh công cụ hoặc chạm trực tiếp trên bản đồ để chọn điểm dừng của bạn.</p>
+                    <p className="text-sm">{t.step_1_desc}</p>
                   </section>
 
                   <section>
                     <h3 className="font-bold text-blue-600 mb-2 flex items-center gap-2">
                       <span className="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-                      Duy trì kết nối GPS
+                      {t.step_2_title}
                     </h3>
                     <div className="space-y-4">
-                      <p className="text-sm">Hệ điều hành thường ngắt GPS khi màn hình tắt để tiết kiệm pin. Để ứng dụng hoạt động ổn định nhất:</p>
+                      <p className="text-sm">{t.step_2_desc}</p>
                       
                       <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
-                        <p className="text-xs font-bold text-slate-700">Lời khuyên sử dụng:</p>
+                        <p className="text-xs font-bold text-slate-700">{t.pro_tips}</p>
                         <ul className="text-xs list-disc pl-5 space-y-2 text-slate-500">
-                          <li>Kích hoạt tính năng <b>"Chống ngủ quên"</b> trong phần Cài đặt.</li>
-                          <li><b>Giảm độ sáng màn hình</b> xuống mức thấp nhất để tiết kiệm pin mà không làm ngắt GPS.</li>
-                          <li>Sử dụng tính năng <b>"Thêm vào màn hình chính"</b> để có trải nghiệm như ứng dụng cài đặt chính thức.</li>
+                          <li>{t.tip_anti_sleep}</li>
+                          <li>{t.tip_brightness}</li>
+                          <li>{t.tip_pwa}</li>
                         </ul>
                       </div>
                       <div className="mt-4 border-t pt-4">
-                        <p className="text-xs font-bold uppercase text-slate-400 mb-2 text-center text-[10px]">Cách cài đặt lên điện thoại:</p>
+                        <p className="text-xs font-bold uppercase text-slate-400 mb-2 text-center text-[10px]">{t.install_guide}</p>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                             <p className="text-[10px] font-black text-slate-400 mb-1">iOS (Safari):</p>
-                            <p className="text-[9px] leading-tight">Bấm <b>Chia sẻ</b> (Share) → <b>Thêm vào MH chính</b></p>
+                            <p className="text-[9px] leading-tight">{t.ios_guide.split(':')[1].trim()}</p>
                           </div>
                           <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                             <p className="text-[10px] font-black text-slate-400 mb-1">Android (Chrome):</p>
-                            <p className="text-[9px] leading-tight">Bấm <b>Menu (3 chấm)</b> → <b>Cài đặt ứng dụng</b></p>
+                            <p className="text-[9px] leading-tight">{t.android_guide.split(':')[1].trim()}</p>
                           </div>
                         </div>
                       </div>
@@ -664,7 +711,7 @@ export default function App() {
                   <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
                     <Info className="w-5 h-5 text-blue-500 shrink-0" />
                     <p className="text-xs text-blue-700">
-                      Ứng dụng sẽ tự động rung và đổ chuông khi bạn đi vào bán kính đã cài đặt (mặc định 500m).
+                      {t.pwa_notice}
                     </p>
                   </div>
                 </div>
@@ -673,7 +720,7 @@ export default function App() {
                   onClick={() => setShowHowToInstall(false)}
                   className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold mt-8"
                 >
-                  Đã hiểu
+                  {t.done}
                 </button>
               </motion.div>
             </motion.div>
@@ -690,11 +737,11 @@ export default function App() {
               isTracking ? "bg-green-500" : "bg-red-500"
             )} />
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              {isTracking ? "GPS Active" : "GPS Signal Lost"}
+              {isTracking ? t.gps_active : t.gps_lost}
             </span>
           </div>
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            v1.1.0
+            v1.2.0
           </div>
         </div>
         <div className="text-center">
