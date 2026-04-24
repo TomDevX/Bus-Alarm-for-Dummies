@@ -46,53 +46,35 @@
    npm run build
    ```
 
-## 🌐 Deploying to GitHub Pages
+## 🌐 Deployment Options
 
-To make the app work correctly on GitHub Pages, follow these steps:
+### Option 1: Using GitHub Actions (Automatic - Recommended)
+1. Go to your repo **Settings** -> **Pages**.
+2. Under **Build and deployment** > **Source**, select **GitHub Actions**.
+3. The app will automatically deploy whenever you push to `main`.
 
-1. **Vite Base Path**: In `vite.config.ts`, check that `base: './'` is set.
-2. **Settings**: Go to your GitHub repository -> **Settings** -> **Pages**.
-3. **Build and Deployment**: Select **GitHub Actions** as the Source.
-4. **Workflow**: Create a file at `.github/workflows/deploy.yml` with the content below.
+### Option 2: Manual Deployment (No Workflow)
+If you prefer not to use GitHub Actions:
 
-### GitHub Actions Workflow (`.github/workflows/deploy.yml`):
-```yaml
-name: Deploy to GitHub Pages
+1. Install the `gh-pages` package:
+   ```bash
+   npm install gh-pages --save-dev
+   ```
+2. Add these scripts to your `package.json`:
+   ```json
+   "homepage": "https://<your-username>.github.io/<your-repo-name>/",
+   "scripts": {
+     "predeploy": "npm run build",
+     "deploy": "gh-pages -d dist"
+   }
+   ```
+3. Run the deployment command:
+   ```bash
+   npm run deploy
+   ```
+4. On GitHub, go to **Settings** -> **Pages** and set the source branch to `gh-pages`.
 
-on:
-  push:
-    branches: ["main"]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-```
+---
 
 ## 📝 Important Notes for Users
 
