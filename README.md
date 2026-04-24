@@ -46,6 +46,53 @@
    npm run build
    ```
 
+## 🌐 Lưu ý khi đẩy lên GitHub Pages
+
+Để ứng dụng hoạt động chính xác trên GitHub Pages, hãy lưu ý:
+
+1. **Vite Base Path**: File `vite.config.ts` đã được cài đặt `base: './'` để hỗ trợ các đường dẫn tương đối.
+2. **HTTPS**: GitHub Pages cung cấp HTTPS mặc định. Đây là điều kiện **bắt buộc** để tính năng **Vị trí (GPS)** và **Wake Lock** (chống tắt màn hình) hoạt động.
+3. **Cài đặt GitHub Actions**: Bạn nên sử dụng GitHub Actions để tự động build và deploy từ nhánh `main` lên nhánh `gh-pages`.
+
+### File mẫu `.github/workflows/deploy.yml`:
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
 ## 📝 Lưu ý sử dụng (Dành cho người dùng)
 
 Do chính sách bảo mật của trình duyệt, để ứng dụng hoạt động tốt nhất:
