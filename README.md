@@ -1,60 +1,61 @@
-# 🚌 BusSnooze - Ứng dụng Báo thức Điểm dừng Xe buýt
+# 🚌 BusSnooze - Bus Stop Proximity Alarm App
 
-**BusSnooze** là một ứng dụng Web (PWA) giúp hành khách đi xe buýt không còn lo lắng về việc ngủ quên và đi quá điểm dừng. Ứng dụng sẽ theo dõi vị trí của bạn thông qua GPS và kích hoạt báo thức ngay khi bạn đi vào bán kính đã thiết lập gần điểm đến.
+**BusSnooze** is a Progressive Web App (PWA) that helps bus passengers avoid missing their stops. The app tracks your location via GPS and triggers an alarm as soon as you enter a pre-set radius near your destination.
 
 ![App Screenshot](https://via.placeholder.com/400x800?text=BusSnooze+Screenshot) 
 
-## ✨ Tính năng nổi bật
+## ✨ Key Features
 
-- **📍 Định vị GPS thời gian thực**: Hiển thị vị trí hiện tại với mũi tên chỉ hướng chính xác như Google Maps.
-- **🔍 Tìm kiếm thông minh**: Tìm kiếm địa chỉ/điểm dừng nhanh chóng với tính năng tự động gợi ý ngay khi gõ.
-- **🔔 Báo thức Proximity**: Tự động đổ chuông và rung khi bạn ở gần điểm đến trong bán kính từ 100m - 2000m.
-- **📌 Lưu địa điểm yêu thích**: Lưu lại các điểm dừng thường xuyên (Nhà, Cơ quan, Trường học...) để kích hoạt báo thức chỉ với 1 chạm.
-- **🛡️ Chế độ Chống ngủ quên (Wake Lock)**: Ngăn thiết bị tắt màn hình để đảm bảo GPS luôn hoạt động ổn định trong suốt chuyến đi.
-- **💾 Ghi nhớ cài đặt**: Tự động lưu lại bán kính báo thức và các địa điểm đã lưu của từng người dùng.
-- **📱 Tối ưu hóa di động**: Thiết kế giao diện hiện đại, dễ thao tác bằng một tay, hỗ trợ cài đặt như ứng dụng chính thức (PWA).
+- **📍 Real-time GPS Tracking**: Shows your current location with a directional arrow.
+- **🔍 Smart Search**: Quickly find addresses/bus stops with auto-suggestions.
+- **🔔 Proximity Alarm**: Automatically rings and vibrates when you are near your destination (100m - 2000m radius).
+- **📌 Saved Locations**: Save your frequent stops (Home, Work, School...) to activate alarms with a single tap.
+- **🛡️ Anti-Sleep Mode (Wake Lock)**: Prevents the device from turning off the screen to ensure stable GPS tracking throughout the journey.
+- **💾 Persistent Settings**: Automatically saves your alarm radius and pinned locations.
+- **📱 Mobile Optimized**: Modern UI designed for one-handed use, can be installed as a PWA.
 
-## 🚀 Công nghệ sử dụng
+## 🚀 Technologies Used
 
-- **React 18** & **Vite**: Nền tảng phát triển nhanh và tối ưu.
-- **Tailwind CSS**: Giao diện hiện đại, responsive.
-- **Leaflet & React-Leaflet**: Xử lý bản đổ và tương tác vị trí.
-- **Lucide React**: Hệ thống icon đồng nhất.
-- **Motion (Framer Motion)**: Hiệu ứng chuyển động mượt mà.
-- **Web Audio API**: Xử lý âm thanh báo thức.
+- **React 18** & **Vite**: Fast and optimized development platform.
+- **Tailwind CSS**: Modern, responsive styling.
+- **Leaflet & React-Leaflet**: Map rendering and location interaction.
+- **Lucide React**: Consistent iconography.
+- **Motion (Framer Motion)**: Smooth animations.
+- **Web Audio API**: Browser-based alarm sound synthesis.
 
-## 🛠️ Cài đặt và Phát triển
+## 🛠️ Installation and Development
 
-1. **Clone repository:**
+1. **Clone the repository:**
    ```bash
-   git clone https://github.com/TomDevX/BusSnooze.git
+   git clone https://github.com/YourUsername/BusSnooze.git
    cd BusSnooze
    ```
 
-2. **Cài đặt dependencies:**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Chạy ở môi trường local:**
+3. **Run in development mode:**
    ```bash
    npm run dev
    ```
 
-4. **Build bản production:**
+4. **Build for production:**
    ```bash
    npm run build
    ```
 
-## 🌐 Lưu ý khi đẩy lên GitHub Pages
+## 🌐 Deploying to GitHub Pages
 
-Để ứng dụng hoạt động chính xác trên GitHub Pages, hãy lưu ý:
+To make the app work correctly on GitHub Pages, follow these steps:
 
-1. **Vite Base Path**: File `vite.config.ts` đã được cài đặt `base: './'` để hỗ trợ các đường dẫn tương đối.
-2. **HTTPS**: GitHub Pages cung cấp HTTPS mặc định. Đây là điều kiện **bắt buộc** để tính năng **Vị trí (GPS)** và **Wake Lock** (chống tắt màn hình) hoạt động.
-3. **Cài đặt GitHub Actions**: Bạn nên sử dụng GitHub Actions để tự động build và deploy từ nhánh `main` lên nhánh `gh-pages`.
+1. **Vite Base Path**: In `vite.config.ts`, check that `base: './'` is set.
+2. **Settings**: Go to your GitHub repository -> **Settings** -> **Pages**.
+3. **Build and Deployment**: Select **GitHub Actions** as the Source.
+4. **Workflow**: Create a file at `.github/workflows/deploy.yml` with the content below.
 
-### File mẫu `.github/workflows/deploy.yml`:
+### GitHub Actions Workflow (`.github/workflows/deploy.yml`):
 ```yaml
 name: Deploy to GitHub Pages
 
@@ -93,16 +94,16 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-## 📝 Lưu ý sử dụng (Dành cho người dùng)
+## 📝 Important Notes for Users
 
-Do chính sách bảo mật của trình duyệt, để ứng dụng hoạt động tốt nhất:
-1. Hãy **Thêm vào màn hình chính** (Add to Home Screen) để có hiệu năng ổn định nhất.
-2. Kích hoạt tính năng **"Chống ngủ quên"** trong phần cài đặt của App.
-3. Luôn cho phép quyền truy cập **Vị trí (Location)** ở mức "Trong khi sử dụng" hoặc "Luôn luôn".
+Due to browser security policies:
+1. **Add to Home Screen**: For the most stable performance, please use the "Add to Home Screen" feature on your mobile browser.
+2. **Stay Awake**: Enable the **"Anti-Sleep Mode"** in the app settings to keep GPS active while the screen is on (but dimmed).
+3. **GPS Permissions**: Ensure that location permissions are set to "While Using" or "Always".
 
-## 🤝 Đóng góp
+## 🤝 Contributing
 
-Mọi đóng góp (Pull Request) hoặc báo lỗi (Issue) đều được hoan nghênh.
+Contributions (Pull Requests) and bug reports (Issues) are welcome.
 
 ---
 Made by [TomDev](https://github.com/TomDevX) and AI with ❤️🔥
