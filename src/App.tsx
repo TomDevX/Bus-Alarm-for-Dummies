@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Bell, BellOff, Navigation, Settings, Info, AlertTriangle, Bus, Search, X, Loader2, BookOpen, Globe } from 'lucide-react';
+import { MapPin, Bell, BellOff, Navigation, Settings, Info, AlertTriangle, Bus, Search, X, Loader2, BookOpen, Globe, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MapComponent from './components/MapComponent';
 import { useGeolocation, calculateDistance } from './hooks/useGeolocation';
@@ -57,10 +57,17 @@ export default function App() {
     return saved ? parseFloat(saved) : 1.0;
   };
 
+  const getInitialDarkMode = (): boolean => {
+    const saved = localStorage.getItem('bussnooze_darkmode');
+    if (saved !== null) return saved === 'true';
+    return false; // Default to light mode
+  };
+
   const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
   const [destinationName, setDestinationName] = useState<string>("");
   const [radius, setRadius] = useState(getInitialRadius);
   const [volume, setVolume] = useState(getInitialVolume);
+  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const t = translations[language];
   const [pinnedLocations, setPinnedLocations] = useState<PinnedLocation[]>(getInitialPins);
@@ -116,6 +123,15 @@ export default function App() {
       audioRef.current.volume = Math.min(volume, 1.0);
     }
   }, [volume]);
+
+  useEffect(() => {
+    localStorage.setItem('bussnooze_darkmode', isDarkMode.toString());
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   // Handle setting keepAwake state and preference 
   // Initial wake lock if enabled
@@ -379,11 +395,11 @@ export default function App() {
   };  
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans transition-colors duration-300">
       {/* Header */}
-      <header className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 shadow-sm z-20">
+      <header className="px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 shadow-sm z-20">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100">
+          <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
             <img 
               src="https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png" 
               alt="BusSnooze Logo" 
@@ -393,26 +409,33 @@ export default function App() {
               }}
             />
           </div>
-          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-800 to-slate-500 bg-clip-text text-transparent">{t.app_name}</h1>
+          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-800 to-slate-500 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">{t.app_name}</h1>
         </div>
         <div className="flex items-center gap-1">
           <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-400"
+            title={isDarkMode ? "Light Mode" : "Dark Mode"}
+          >
+            {isDarkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-indigo-500" />}
+          </button>
+          <button 
             onClick={() => setLanguage(language === 'en' ? 'vi' : 'en')}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors text-xl"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-xl"
             title={language === 'en' ? 'Tiếng Việt' : 'English'}
           >
             {language === 'en' ? '🇬🇧' : '🇻🇳'}
           </button>
           <button 
             onClick={() => setShowHowToInstall(true)}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-400"
             title={t.how_to_use}
           >
             <BookOpen className="w-6 h-6" />
           </button>
           <button 
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-400"
             title={t.settings}
           >
             <Settings className="w-6 h-6" />
@@ -425,14 +448,14 @@ export default function App() {
         {/* Search Bar */}
         <div className="absolute top-4 left-4 right-4 z-[1001] pointer-events-none">
           <div className="relative pointer-events-auto">
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-1 flex items-center">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-1 flex items-center">
               <div className="pl-3 text-slate-400">
                 <Search className="w-5 h-5" />
               </div>
               <input 
                 type="text" 
                 placeholder={t.search_placeholder} 
-                className="flex-1 bg-transparent px-3 py-3 text-sm focus:outline-none text-slate-800"
+                className="flex-1 bg-transparent px-3 py-3 text-sm focus:outline-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -440,7 +463,7 @@ export default function App() {
               {searchQuery && (
                 <button 
                   onClick={() => {setSearchQuery(""); setShowResults(false)}}
-                  className="p-2 text-slate-400 hover:text-slate-600"
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -461,19 +484,19 @@ export default function App() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-60 overflow-y-auto"
+                  className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-60 overflow-y-auto"
                 >
                   {isSearching ? (
-                    <div className="p-4 text-center text-slate-500 text-sm">{t.searching}</div>
+                    <div className="p-4 text-center text-slate-500 dark:text-slate-400 text-sm">{t.searching}</div>
                   ) : (
                     searchResults.map((result, idx) => (
                       <button
                         key={idx}
                         onClick={() => selectResult(result)}
-                        className="w-full text-left p-3 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex items-start gap-2"
+                        className="w-full text-left p-3 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 last:border-0 flex items-start gap-2"
                       >
                         <MapPin className="w-4 h-4 text-slate-400 mt-1 shrink-0" />
-                        <span className="text-sm text-slate-700 line-clamp-2">{result.display_name}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">{result.display_name}</span>
                       </button>
                     ))
                   )}
@@ -492,6 +515,7 @@ export default function App() {
             radius={radius}
             language={language}
             showCompass={showCompass}
+            isDarkMode={isDarkMode}
           />
         </div>
 
@@ -504,11 +528,11 @@ export default function App() {
               exit={{ y: 100, opacity: 0 }}
               className="px-4 pb-6 shrink-0"
             >
-              <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-100 dark:border-slate-800">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{t.destination_set}</p>
-                    <div className="flex items-center gap-2 text-slate-700">
+                    <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
                       <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
                       <span className="font-medium truncate max-w-[200px]">
                         {destinationName || `${destination.latitude.toFixed(4)}, ${destination.longitude.toFixed(4)}`}
@@ -517,7 +541,7 @@ export default function App() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{t.distance}</p>
-                    <p className="text-2xl font-black text-slate-800">
+                    <p className="text-2xl font-black text-slate-800 dark:text-white">
                       {distance !== null ? (distance < 1000 ? `${Math.round(distance)}m` : `${(distance/1000).toFixed(1)}km`) : '--'}
                     </p>
                   </div>
@@ -529,8 +553,8 @@ export default function App() {
                     className={cn(
                       "flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg",
                       isAlarmActive 
-                        ? "bg-red-50 text-red-600 border-2 border-red-200" 
-                        : "bg-blue-600 text-white hover:bg-blue-700"
+                        ? "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border-2 border-red-200 dark:border-red-900/50" 
+                        : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/25"
                     )}
                   >
                     {isAlarmActive ? (
@@ -548,7 +572,7 @@ export default function App() {
                   
                   <button
                     onClick={pinLocation}
-                    className="p-4 bg-slate-100 text-slate-500 rounded-2xl hover:bg-slate-200 transition-colors shadow-inner"
+                    className="p-4 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-inner"
                     title={t.save_location}
                   >
                     <MapPin className="w-6 h-6 fill-current" />
@@ -562,10 +586,10 @@ export default function App() {
         {/* No Destination Prompt */}
         {!destination && (
           <div className="px-6 pb-8 text-center shrink-0">
-            <div className="bg-white/50 backdrop-blur-md p-8 rounded-[2.5rem] border border-white shadow-xl shadow-blue-100/50">
+            <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md p-8 rounded-[2.5rem] border border-white dark:border-slate-800 shadow-xl shadow-blue-100/50 dark:shadow-none">
               <div className="relative w-24 h-24 mx-auto mb-4">
-                <div className="absolute inset-0 bg-blue-100 rounded-3xl animate-ping opacity-20"></div>
-                <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 w-24 h-24 rounded-[2rem] flex items-center justify-center border-4 border-white shadow-xl overflow-hidden">
+                <div className="absolute inset-0 bg-blue-100 dark:bg-blue-900/30 rounded-3xl animate-ping opacity-20"></div>
+                <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-slate-800 dark:to-slate-900 w-24 h-24 rounded-[2rem] flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-xl overflow-hidden">
                   <img 
                     src="https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png" 
                     alt="BusSnooze Icon" 
@@ -576,8 +600,8 @@ export default function App() {
                   />
                 </div>
               </div>
-              <h3 className="font-extrabold text-slate-800 text-lg mb-1 tracking-tight">{t.where_to}</h3>
-              <p className="text-sm text-slate-500 font-medium">{t.tap_map}</p>
+              <h3 className="font-extrabold text-slate-800 dark:text-white text-lg mb-1 tracking-tight">{t.where_to}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t.tap_map}</p>
             </div>
           </div>
         )}
@@ -636,30 +660,30 @@ export default function App() {
                     setShowSettings(false);
                   }
                 }}
-                className="w-full bg-white rounded-t-[40px] p-8 shadow-2xl relative"
+                className="w-full bg-white dark:bg-slate-900 rounded-t-[40px] p-8 shadow-2xl relative"
                 onClick={e => e.stopPropagation()}
               >
                 <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-center cursor-grab active:cursor-grabbing z-10">
-                  <div className="w-12 h-1.5 bg-slate-200 rounded-full hover:bg-slate-300 transition-colors" />
+                  <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors" />
                 </div>
                 <div className="mt-6">
-                  <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                     <Settings className="w-6 h-6 text-blue-500" />
                     {t.alarm_settings}
                   </h2>
                 </div>
                 
-                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-900/50">
                     <div>
-                      <h4 className="font-bold text-slate-800 text-sm">{t.anti_sleep_mode}</h4>
-                      <p className="text-xs text-slate-500">{t.anti_sleep_desc}</p>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{t.anti_sleep_mode}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{t.anti_sleep_desc}</p>
                     </div>
                     <button 
                       onClick={() => setKeepAwake(!keepAwake)}
                       className={cn(
                         "w-12 h-6 rounded-full transition-colors relative",
-                        keepAwake ? "bg-blue-600" : "bg-slate-300"
+                        keepAwake ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
                       )}
                     >
                       <div className={cn(
@@ -669,16 +693,16 @@ export default function App() {
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
                     <div>
-                      <h4 className="font-bold text-slate-800 text-sm">{t.show_compass}</h4>
-                      <p className="text-xs text-slate-500">{t.show_compass_desc}</p>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{t.show_compass}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{t.show_compass_desc}</p>
                     </div>
                     <button 
                       onClick={() => setShowCompass(!showCompass)}
                       className={cn(
                         "w-12 h-6 rounded-full transition-colors relative",
-                        showCompass ? "bg-blue-600" : "bg-slate-300"
+                        showCompass ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-600"
                       )}
                     >
                       <div className={cn(
@@ -690,7 +714,7 @@ export default function App() {
 
                   {/* Language Switcher */}
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest">
+                    <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                       {t.language}
                     </label>
                     <div className="grid grid-cols-2 gap-3">
@@ -698,7 +722,7 @@ export default function App() {
                         onClick={() => setLanguage('en')}
                         className={cn(
                           "py-3 rounded-xl border-2 font-bold transition-all text-sm flex items-center justify-center gap-2",
-                          language === 'en' ? "border-blue-600 bg-blue-50 text-blue-600" : "border-slate-100 text-slate-400"
+                          language === 'en' ? "border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600"
                         )}
                       >
                         <Globe className="w-4 h-4" />
@@ -708,7 +732,7 @@ export default function App() {
                         onClick={() => setLanguage('vi')}
                         className={cn(
                           "py-3 rounded-xl border-2 font-bold transition-all text-sm flex items-center justify-center gap-2",
-                          language === 'vi' ? "border-blue-600 bg-blue-50 text-blue-600" : "border-slate-100 text-slate-400"
+                          language === 'vi' ? "border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-600"
                         )}
                       >
                         <Globe className="w-4 h-4" />
@@ -718,8 +742,8 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
-                      {t.alarm_radius}: <span className="text-blue-600">{radius} {t.meters}</span>
+                    <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
+                      {t.alarm_radius}: <span className="text-blue-600 dark:text-blue-400">{radius} {t.meters}</span>
                     </label>
                     <input 
                       type="range" 
@@ -728,17 +752,17 @@ export default function App() {
                       step="100"
                       value={radius}
                       onChange={(e) => setRadius(parseInt(e.target.value))}
-                      className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
-                    <div className="flex justify-between mt-2 text-xs font-medium text-slate-400">
+                    <div className="flex justify-between mt-2 text-xs font-medium text-slate-400 dark:text-slate-500">
                       <span>100m</span>
                       <span>2km</span>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
-                      {t.alarm_volume}: <span className="text-blue-600">{Math.round(volume * 100)}%</span>
+                    <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
+                      {t.alarm_volume}: <span className="text-blue-600 dark:text-blue-400">{Math.round(volume * 100)}%</span>
                     </label>
                     <input 
                       type="range" 
@@ -747,9 +771,9 @@ export default function App() {
                       step="0.1"
                       value={volume}
                       onChange={(e) => setVolume(parseFloat(e.target.value))}
-                      className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
-                    <div className="flex justify-between mt-2 text-xs font-medium text-slate-400">
+                    <div className="flex justify-between mt-2 text-xs font-medium text-slate-400 dark:text-slate-500">
                       <span>0%</span>
                       <span>200%</span>
                     </div>
@@ -757,7 +781,7 @@ export default function App() {
 
                   {/* Saved Locations */}
                   <div>
-                    <label className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">
+                    <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
                       {t.saved_locations} ({pinnedLocations.length})
                     </label>
                     {pinnedLocations.length > 0 ? (
@@ -765,18 +789,18 @@ export default function App() {
                         {pinnedLocations.map(pin => (
                           <div 
                             key={pin.id}
-                            className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between group"
+                            className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center justify-between group"
                           >
                             <button 
                               onClick={() => selectPinnedLocation(pin)}
                               className="flex-1 text-left flex items-center gap-2 overflow-hidden"
                             >
                               <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
-                              <span className="text-sm text-slate-700 truncate font-medium">{pin.name}</span>
+                              <span className="text-sm text-slate-700 dark:text-slate-300 truncate font-medium">{pin.name}</span>
                             </button>
                             <button 
                               onClick={() => removePin(pin.id)}
-                              className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                              className="p-2 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -784,15 +808,15 @@ export default function App() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                        <p className="text-xs text-slate-400">{t.no_saved_locations}</p>
+                      <div className="text-center py-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                        <p className="text-xs text-slate-400 dark:text-slate-500">{t.no_saved_locations}</p>
                       </div>
                     )}
                   </div>
 
-                  <div className="bg-slate-50 p-4 rounded-2xl flex gap-3">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex gap-3">
                     <Info className="w-5 h-5 text-blue-500 shrink-0" />
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                       {language === 'en' 
                         ? "The alarm will trigger when you enter this radius. Larger radius is recommended for fast-moving buses."
                         : "Báo thức sẽ kêu khi bạn đi vào bán kính này. Nên để bán kính lớn hơn cho các xe buýt di chuyển nhanh."}
@@ -800,9 +824,9 @@ export default function App() {
                   </div>
 
                   {error && (
-                    <div className="bg-red-50 p-4 rounded-2xl flex gap-3 border border-red-100">
+                    <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-2xl flex gap-3 border border-red-100 dark:border-red-900/30">
                       <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-                      <p className="text-xs text-red-600 leading-relaxed">
+                      <p className="text-xs text-red-600 dark:text-red-400 leading-relaxed">
                         {t.location_error.replace('{error}', error)}
                       </p>
                     </div>
@@ -810,7 +834,7 @@ export default function App() {
 
                   <button
                     onClick={() => setShowSettings(false)}
-                    className="w-full py-4 bg-slate-800 text-white rounded-2xl font-bold mt-4 shadow-lg active:scale-95 transition-transform"
+                    className="w-full py-4 bg-slate-800 dark:bg-slate-700 text-white rounded-2xl font-bold mt-4 shadow-lg dark:shadow-none active:scale-95 transition-transform"
                   >
                     {t.done}
                   </button>
@@ -833,60 +857,63 @@ export default function App() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="w-full max-w-sm bg-white rounded-[32px] p-8 shadow-2xl overflow-y-auto max-h-[80vh]"
+                className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[32px] p-8 shadow-2xl overflow-y-auto max-h-[80vh] border border-slate-100 dark:border-slate-800"
                 onClick={e => e.stopPropagation()}
               >
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-slate-800">{t.how_to_use}</h2>
-                  <button onClick={() => setShowHowToInstall(false)} className="p-1 hover:bg-slate-100 rounded-full">
+                  <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{t.how_to_use}</h2>
+                  <button 
+                    onClick={() => setShowHowToInstall(false)} 
+                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                  >
                     <X className="w-6 h-6 text-slate-400" />
                   </button>
                 </div>
 
-                <div className="space-y-6 text-slate-600">
+                <div className="space-y-6 text-slate-600 dark:text-slate-400">
                   <section>
-                    <h3 className="font-bold text-blue-600 mb-2 flex items-center gap-2">
-                      <span className="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                    <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                      <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">1</span>
                       {t.step_1_title}
                     </h3>
                     <p className="text-sm">{t.step_1_desc}</p>
                   </section>
 
                   <section>
-                    <h3 className="font-bold text-blue-600 mb-2 flex items-center gap-2">
-                      <span className="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                    <h3 className="font-bold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                      <span className="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">2</span>
                       {t.step_2_title}
                     </h3>
                     <div className="space-y-4">
                       <p className="text-sm">{t.step_2_desc}</p>
                       
-                      <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
-                        <p className="text-xs font-bold text-slate-700">{t.pro_tips}</p>
-                        <ul className="text-xs list-disc pl-5 space-y-2 text-slate-500">
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl space-y-3 border border-slate-100 dark:border-slate-700">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{t.pro_tips}</p>
+                        <ul className="text-xs list-disc pl-5 space-y-2 text-slate-500 dark:text-slate-400">
                           <li>{t.tip_anti_sleep}</li>
                           <li>{t.tip_brightness}</li>
                           <li>{t.tip_pwa}</li>
                         </ul>
                       </div>
-                      <div className="mt-4 border-t pt-4">
+                      <div className="mt-4 border-t dark:border-slate-800 pt-4">
                         <p className="text-xs font-bold uppercase text-slate-400 mb-2 text-center text-[10px]">{t.install_guide}</p>
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
                             <p className="text-[10px] font-black text-slate-400 mb-1">iOS (Safari):</p>
-                            <p className="text-[9px] leading-tight">{t.ios_guide.split(':')[1].trim()}</p>
+                            <p className="text-[9px] leading-tight text-slate-500 dark:text-slate-400">{t.ios_guide.split(':')[1].trim()}</p>
                           </div>
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
                             <p className="text-[10px] font-black text-slate-400 mb-1">Android (Chrome):</p>
-                            <p className="text-[9px] leading-tight">{t.android_guide.split(':')[1].trim()}</p>
+                            <p className="text-[9px] leading-tight text-slate-500 dark:text-slate-400">{t.android_guide.split(':')[1].trim()}</p>
                           </div>
                         </div>
                       </div>
                     </div>
                   </section>
 
-                  <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex gap-3">
                     <Info className="w-5 h-5 text-blue-500 shrink-0" />
-                    <p className="text-xs text-blue-700">
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
                       {t.pwa_notice}
                     </p>
                   </div>
@@ -905,23 +932,23 @@ export default function App() {
       </main>
 
       {/* Tracking Status Bar */}
-      <footer className="px-6 py-3 bg-white border-t border-slate-100 flex flex-col gap-2 shrink-0">
+      <footer className="px-6 py-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className={cn(
               "w-2 h-2 rounded-full animate-pulse",
               isTracking ? "bg-green-500" : "bg-red-500"
             )} />
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
               {isTracking ? t.gps_active : t.gps_lost}
             </span>
           </div>
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
             v1.2.0
           </div>
         </div>
         <div className="text-center">
-          <p className="text-[10px] text-slate-400 font-medium">
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
             made by <a href="https://github.com/TomDevX" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">TomDev</a> and AI with ❤️🔥
           </p>
         </div>

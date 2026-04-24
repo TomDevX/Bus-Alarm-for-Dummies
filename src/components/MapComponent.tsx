@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, Circle, useMap } from 'r
 import L from 'leaflet';
 import { useEffect, useRef } from 'react';
 import { translations, Language } from '../translations';
+import { cn } from '../lib/utils';
 
 // Fix for default marker icons in Leaflet with React
 // @ts-ignore
@@ -35,6 +36,7 @@ interface MapProps {
   radius: number;
   language: Language;
   showCompass?: boolean;
+  isDarkMode?: boolean;
 }
 
 // Custom modern GPS blue dot with optional beam
@@ -101,7 +103,7 @@ function LocationPicker({ onSelect }: { onSelect: (lat: number, lng: number) => 
   return null;
 }
 
-export default function MapComponent({ currentLocation, destination, onDestinationSelect, radius, language, showCompass }: MapProps) {
+export default function MapComponent({ currentLocation, destination, onDestinationSelect, radius, language, showCompass, isDarkMode }: MapProps) {
   const t = translations[language];
   const mapRef = useRef<any>(null);
 
@@ -116,7 +118,10 @@ export default function MapComponent({ currentLocation, destination, onDestinati
   };
 
   return (
-    <div className="h-full w-full relative overflow-hidden rounded-2xl shadow-inner bg-slate-200">
+    <div className={cn(
+      "h-full w-full relative overflow-hidden rounded-2xl shadow-inner transition-colors duration-300",
+      isDarkMode ? "bg-slate-900" : "bg-slate-200"
+    )}>
       <style>{`
         .custom-user-marker {
           transition: transform 0.3s ease-out;
@@ -138,8 +143,11 @@ export default function MapComponent({ currentLocation, destination, onDestinati
         ref={mapRef}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={isDarkMode 
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          }
         />
         
         {currentLocation && currentLocation.latitude !== null && currentLocation.longitude !== null && (
@@ -174,7 +182,7 @@ export default function MapComponent({ currentLocation, destination, onDestinati
         {currentLocation && currentLocation.latitude !== null && currentLocation.longitude !== null && (
           <button 
             onClick={handleRecenter}
-            className="bg-white p-3 rounded-full shadow-lg border border-slate-200 text-blue-500 active:scale-90 transition-transform"
+            className="bg-white dark:bg-slate-800 p-3 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 text-blue-500 active:scale-90 transition-transform"
             title="Re-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-locate-fixed"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>

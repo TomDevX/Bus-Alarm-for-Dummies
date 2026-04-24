@@ -2,7 +2,7 @@
 
 **BusSnooze** is a Progressive Web App (PWA) that helps bus passengers avoid missing their stops. The app tracks your location via GPS and triggers an alarm as soon as you enter a pre-set radius near your destination.
 
-<img width="1080" height="2290" alt="image" src="preview.jpeg" />
+<img width="1080" height="2290" alt="image" src="https://github.com/TomDevX/Bus-Alarm-for-Dummies/blob/main/preview.jpeg?raw=true" />
 
 ## ✨ Key Features
 
@@ -10,6 +10,8 @@
 - **🔍 Smart Search**: Quickly find addresses/bus stops with auto-suggestions.
 - **🔔 Proximity Alarm**: Automatically rings and vibrates when you are near your destination (100m - 2000m radius).
 - **📌 Saved Locations**: Save your frequent stops (Home, Work, School...) to activate alarms with a single tap.
+- **🌓 Dark Mode**: Modern dark theme for nighttime travel, including a dark-style map.
+- **🌐 Multi-language Support**: Easily switch between **English** and **Vietnamese**.
 - **🛡️ Anti-Sleep Mode (Wake Lock)**: Prevents the device from turning off the screen to ensure stable GPS tracking throughout the journey.
 - **💾 Persistent Settings**: Automatically saves your alarm radius and pinned locations.
 - **📱 Mobile Optimized**: Modern UI designed for one-handed use, can be installed as a PWA.
