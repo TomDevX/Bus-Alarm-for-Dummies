@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Bell, BellOff, Navigation, Settings, Info, AlertTriangle, Bus, Search, X, Loader2, Smartphone, Globe } from 'lucide-react';
+import { MapPin, Bell, BellOff, Navigation, Settings, Info, AlertTriangle, Bus, Search, X, Loader2, BookOpen, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MapComponent from './components/MapComponent';
 import { useGeolocation, calculateDistance } from './hooks/useGeolocation';
@@ -383,18 +383,25 @@ export default function App() {
       {/* Header */}
       <header className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 shadow-sm z-20">
         <div className="flex items-center gap-2">
-          <div className="bg-blue-600 p-2 rounded-xl">
-            <Bus className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100">
+            <img src="/icon.png" alt="BusSnooze Logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-800">{t.app_name}</h1>
+          <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-800 to-slate-500 bg-clip-text text-transparent">{t.app_name}</h1>
         </div>
         <div className="flex items-center gap-1">
+          <button 
+            onClick={() => setLanguage(language === 'en' ? 'vi' : 'en')}
+            className="p-2 hover:bg-slate-100 rounded-full transition-colors text-xl"
+            title={language === 'en' ? 'Tiếng Việt' : 'English'}
+          >
+            {language === 'en' ? '🇬🇧' : '🇻🇳'}
+          </button>
           <button 
             onClick={() => setShowHowToInstall(true)}
             className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
             title={t.how_to_use}
           >
-            <Smartphone className="w-6 h-6" />
+            <BookOpen className="w-6 h-6" />
           </button>
           <button 
             onClick={() => setShowSettings(!showSettings)}
@@ -548,10 +555,15 @@ export default function App() {
         {/* No Destination Prompt */}
         {!destination && (
           <div className="px-6 pb-8 text-center shrink-0">
-            <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
-              <Navigation className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-              <h3 className="font-bold text-slate-800 mb-1">{t.where_to}</h3>
-              <p className="text-sm text-slate-500">{t.tap_map}</p>
+            <div className="bg-white/50 backdrop-blur-md p-8 rounded-[2.5rem] border border-white shadow-xl shadow-blue-100/50">
+              <div className="relative w-24 h-24 mx-auto mb-4">
+                <div className="absolute inset-0 bg-blue-100 rounded-3xl animate-ping opacity-20"></div>
+                <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 w-24 h-24 rounded-[2rem] flex items-center justify-center border-4 border-white shadow-xl overflow-hidden">
+                  <img src="/icon.png" alt="BusSnooze Icon" className="w-full h-full object-cover" />
+                </div>
+              </div>
+              <h3 className="font-extrabold text-slate-800 text-lg mb-1 tracking-tight">{t.where_to}</h3>
+              <p className="text-sm text-slate-500 font-medium">{t.tap_map}</p>
             </div>
           </div>
         )}
