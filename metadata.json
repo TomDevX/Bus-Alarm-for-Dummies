@@ -1,0 +1,7 @@
+{
+  "name": "BusSnooze - Proximity Alarm",
+  "description": "A location-based alarm app for bus passengers to ensure they never miss their stop by alerting them when they are near their destination.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
