@@ -43,6 +43,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   };
 
+  const getInitialKeepAwake = (): boolean => {
+    const saved = localStorage.getItem('bussnooze_keepawake');
+    return saved === 'true';
+  };
+
   const [destination, setDestination] = useState<{ latitude: number; longitude: number } | null>(null);
   const [destinationName, setDestinationName] = useState<string>("");
   const [radius, setRadius] = useState(getInitialRadius);
@@ -54,7 +59,7 @@ export default function App() {
   const [distance, setDistance] = useState<number | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showHowToInstall, setShowHowToInstall] = useState(false);
-  const [keepAwake, setKeepAwake] = useState(false);
+  const [keepAwake, setKeepAwake] = useState(getInitialKeepAwake);
   const wakeLockRef = useRef<any>(null);
 
   // Search states
@@ -77,36 +82,65 @@ export default function App() {
     localStorage.setItem('bussnooze_pins', JSON.stringify(pinnedLocations));
   }, [pinnedLocations]);
 
+  useEffect(() => {
+    localStorage.setItem('bussnooze_keepawake', keepAwake.toString());
+    toggleWakeLock(keepAwake);
+  }, [keepAwake]);
+
+  // Handle setting keepAwake state and preference 
+  // Initial wake lock if enabled
+  useEffect(() => {
+    const shouldKeepAwake = localStorage.getItem('bussnooze_keepawake') === 'true';
+    if (shouldKeepAwake) {
+      // Small delay to ensure browser context is ready, or wait for gesture
+      const timer = setTimeout(() => toggleWakeLock(true), 1000);
+      
+      const handleFirstInteraction = () => {
+        toggleWakeLock(true);
+        window.removeEventListener('click', handleFirstInteraction);
+        window.removeEventListener('touchstart', handleFirstInteraction);
+      };
+      window.addEventListener('click', handleFirstInteraction);
+      window.addEventListener('touchstart', handleFirstInteraction);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('click', handleFirstInteraction);
+        window.removeEventListener('touchstart', handleFirstInteraction);
+      };
+    }
+    return undefined;
+  }, []);
+
   // Wake Lock implementation
   const toggleWakeLock = async (enable: boolean) => {
     if ('wakeLock' in navigator) {
       try {
         if (enable) {
-          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-          setKeepAwake(true);
-        } else if (wakeLockRef.current) {
-          await wakeLockRef.current.release();
-          wakeLockRef.current = null;
-          setKeepAwake(false);
+          if (!wakeLockRef.current) {
+            wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+            // Listen for release
+            wakeLockRef.current.addEventListener('release', () => {
+              wakeLockRef.current = null;
+            });
+          }
+        } else {
+          if (wakeLockRef.current) {
+            await wakeLockRef.current.release();
+            wakeLockRef.current = null;
+          }
         }
       } catch (err: any) {
-        console.error(`${err.name}, ${err.message}`);
-        setKeepAwake(false);
+        console.warn(`Wake lock error: ${err.name}`);
       }
-    } else {
-      alert(t.wake_lock_unsupported);
     }
   };
 
   // Re-acquire wake lock when page becomes visible again
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      if (keepAwake && wakeLockRef.current !== null && document.visibilityState === 'visible') {
-        try {
-          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-        } catch (err) {
-          console.error("Failed to re-acquire wake lock:", err);
-        }
+      if (keepAwake && wakeLockRef.current === null && document.visibilityState === 'visible') {
+        toggleWakeLock(true);
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -156,12 +190,42 @@ export default function App() {
     if (!audioRef.current) {
       audioRef.current = new Audio('https://raw.githubusercontent.com/TomDevX/bus-alarm/main/alarm.mp3');
       audioRef.current.loop = true;
+      audioRef.current.preload = 'auto';
+      audioRef.current.load();
     }
   }, []);
+
+  // "Warm up" audio to prevent delay on first play
+  useEffect(() => {
+    const warmUp = () => {
+      initAudio();
+      if (audioRef.current) {
+        // Play and immediately pause to "unlock" the audio context/element
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            if (audioRef.current) audioRef.current.pause();
+          }).catch(() => {
+            // Error is expected if user hasn't interacted enough yet
+          });
+        }
+      }
+      window.removeEventListener('click', warmUp);
+      window.removeEventListener('touchstart', warmUp);
+    };
+
+    window.addEventListener('click', warmUp);
+    window.addEventListener('touchstart', warmUp);
+    return () => {
+      window.removeEventListener('click', warmUp);
+      window.removeEventListener('touchstart', warmUp);
+    };
+  }, [initAudio]);
 
   const startAlarmSound = useCallback(() => {
     initAudio();
     if (audioRef.current) {
+      audioRef.current.currentTime = 0;
       audioRef.current.play().catch(e => console.error("Audio play error:", e));
     }
   }, [initAudio]);
@@ -175,7 +239,7 @@ export default function App() {
 
   // Calculate distance whenever location or destination changes
   useEffect(() => {
-    if (location && destination) {
+    if (location && location.latitude !== null && location.longitude !== null && destination) {
       const d = calculateDistance(
         location.latitude,
         location.longitude,
@@ -473,14 +537,28 @@ export default function App() {
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                className="w-full bg-white rounded-t-[40px] p-8 shadow-2xl"
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.8 }}
+                dragDirectionLock
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 500) {
+                    setShowSettings(false);
+                  }
+                }}
+                className="w-full bg-white rounded-t-[40px] p-8 shadow-2xl relative"
                 onClick={e => e.stopPropagation()}
               >
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8" />
-                <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                  <Settings className="w-6 h-6 text-blue-500" />
-                  {t.alarm_settings}
-                </h2>
+                <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-center cursor-grab active:cursor-grabbing z-10">
+                  <div className="w-12 h-1.5 bg-slate-200 rounded-full hover:bg-slate-300 transition-colors" />
+                </div>
+                <div className="mt-6">
+                  <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <Settings className="w-6 h-6 text-blue-500" />
+                    {t.alarm_settings}
+                  </h2>
+                </div>
                 
                 <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
                   <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
@@ -489,7 +567,7 @@ export default function App() {
                       <p className="text-xs text-slate-500">{t.anti_sleep_desc}</p>
                     </div>
                     <button 
-                      onClick={() => toggleWakeLock(!keepAwake)}
+                      onClick={() => setKeepAwake(!keepAwake)}
                       className={cn(
                         "w-12 h-6 rounded-full transition-colors relative",
                         keepAwake ? "bg-blue-600" : "bg-slate-300"
