@@ -385,7 +385,7 @@ export default function App() {
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100">
             <img 
-              src="/icon.png" 
+              src="https://github.com/TomDevX/Bus-Alarm-for-Dummies/blob/main/public/icon.png" 
               alt="BusSnooze Logo" 
               className="w-full h-full object-cover" 
               onError={(e) => {
