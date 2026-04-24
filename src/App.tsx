@@ -62,8 +62,7 @@ export default function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const oscillatorRef = useRef<OscillatorNode | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Persist settings
   useEffect(() => {
@@ -152,53 +151,25 @@ export default function App() {
     setSearchQuery("");
   };
   
-  // Initialize Audio Context on user interaction
+  // Initialize Audio on user interaction
   const initAudio = useCallback(() => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (!audioRef.current) {
+      audioRef.current = new Audio('https://raw.githubusercontent.com/TomDevX/bus-alarm/main/alarm.mp3');
+      audioRef.current.loop = true;
     }
   }, []);
 
   const startAlarmSound = useCallback(() => {
     initAudio();
-    if (!audioContextRef.current) return;
-    
-    // Stop any existing oscillator
-    if (oscillatorRef.current) {
-      try { oscillatorRef.current.stop(); } catch(e) {}
+    if (audioRef.current) {
+      audioRef.current.play().catch(e => console.error("Audio play error:", e));
     }
-
-    const ctx = audioContextRef.current;
-    
-    // Beeping sequence
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
-    
-    // Beeping pattern
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    for (let i = 0; i < 600; i++) { // Loop for a long time
-      gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + i * 0.5 + 0.1);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + i * 0.5 + 0.4);
-    }
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.start();
-    oscillatorRef.current = osc;
   }, [initAudio]);
 
   const stopAlarmSound = useCallback(() => {
-    if (oscillatorRef.current) {
-      try {
-        oscillatorRef.current.stop();
-      } catch (e) {
-        // Already stopped
-      }
-      oscillatorRef.current = null;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
   }, []);
 
