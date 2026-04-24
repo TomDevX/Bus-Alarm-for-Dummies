@@ -384,7 +384,14 @@ export default function App() {
       <header className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 shadow-sm z-20">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100">
-            <img src="/icon.png" alt="BusSnooze Logo" className="w-full h-full object-cover" />
+            <img 
+              src="/icon.png" 
+              alt="BusSnooze Logo" 
+              className="w-full h-full object-cover" 
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "https://img.icons8.com/3d-fluency/512/bus.png";
+              }}
+            />
           </div>
           <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-800 to-slate-500 bg-clip-text text-transparent">{t.app_name}</h1>
         </div>
@@ -559,7 +566,14 @@ export default function App() {
               <div className="relative w-24 h-24 mx-auto mb-4">
                 <div className="absolute inset-0 bg-blue-100 rounded-3xl animate-ping opacity-20"></div>
                 <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 w-24 h-24 rounded-[2rem] flex items-center justify-center border-4 border-white shadow-xl overflow-hidden">
-                  <img src="/icon.png" alt="BusSnooze Icon" className="w-full h-full object-cover" />
+                  <img 
+                    src="/icon.png" 
+                    alt="BusSnooze Icon" 
+                    className="w-full h-full object-cover" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://img.icons8.com/3d-fluency/512/bus.png";
+                    }}
+                  />
                 </div>
               </div>
               <h3 className="font-extrabold text-slate-800 text-lg mb-1 tracking-tight">{t.where_to}</h3>
