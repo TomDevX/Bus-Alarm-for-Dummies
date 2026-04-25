@@ -396,6 +396,41 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 dark:bg-slate-900 overflow-hidden font-sans transition-colors duration-300">
+      {/* Alarm Alert Overlay (Tap anywhere to stop) */}
+      <AnimatePresence>
+        {isAlarmTriggered && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleStopAlarm}
+            className="fixed inset-0 z-[3000] bg-red-600/90 flex flex-col items-center justify-center p-6 text-center cursor-pointer"
+          >
+            <motion.div
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, -5, 5, -5, 0]
+              }}
+              transition={{ 
+                duration: 0.5, 
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="bg-white p-8 rounded-full shadow-2xl mb-8"
+            >
+              <Bell className="w-16 h-16 text-red-600 animate-bounce" />
+            </motion.div>
+            <h2 className="text-4xl font-black text-white mb-4 drop-shadow-lg tracking-tight">
+              {t.alarm_active}
+            </h2>
+            <p className="text-xl text-white/90 font-bold animate-pulse">
+              {language === 'en' ? 'TAP ANYWHERE TO STOP' : 'CHẠM BẤT CỨ ĐÂU ĐỂ TẮT'}
+            </p>
+            <div className="absolute inset-0 bg-white/20 animate-ping pointer-events-none" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 shadow-sm z-20">
         <div className="flex items-center gap-2">
