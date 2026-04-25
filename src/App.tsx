@@ -401,11 +401,11 @@ export default function App() {
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
             <img 
-              src="https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png" 
+              src="/BusSnooze.png" 
               alt="BusSnooze Logo" 
               className="w-full h-full object-cover" 
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png";
+                (e.target as HTMLImageElement).src = "https://img.icons8.com/3d-fluency/512/bus.png";
               }}
             />
           </div>
@@ -591,11 +591,11 @@ export default function App() {
                 <div className="absolute inset-0 bg-blue-100 dark:bg-blue-900/30 rounded-3xl animate-ping opacity-20"></div>
                 <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-slate-800 dark:to-slate-900 w-24 h-24 rounded-[2rem] flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-xl overflow-hidden">
                   <img 
-                    src="https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png" 
+                    src="/BusSnooze.png" 
                     alt="BusSnooze Icon" 
                     className="w-full h-full object-cover" 
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png";
+                      (e.target as HTMLImageElement).src = "https://img.icons8.com/3d-fluency/512/bus.png";
                     }}
                   />
                 </div>

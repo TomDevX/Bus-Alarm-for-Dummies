@@ -19,13 +19,13 @@ export default defineConfig(({mode}) => {
           theme_color: '#3b82f6',
           icons: [
             {
-              src: 'https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png',
+              src: '/BusSnooze.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any'
             },
             {
-              src: 'https://raw.githubusercontent.com/TomDevX/Bus-Alarm-for-Dummies/refs/heads/main/BusSnooze.png',
+              src: '/BusSnooze.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable'

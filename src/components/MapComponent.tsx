@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, Marker, useMapEvents, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { translations, Language } from '../translations';
 import { cn } from '../lib/utils';
 
@@ -86,19 +86,30 @@ const UserLocationMarker = ({ location, showCompass }: { location: MapProps['cur
   );
 };
 
-function MapUpdater({ center }: { center: [number, number] }) {
+function MapUpdater({ center, isFollowing }: { center: [number, number], isFollowing: boolean }) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center);
-  }, [center, map]);
+    if (isFollowing) {
+      map.setView(center);
+    }
+  }, [center, map, isFollowing]);
   return null;
 }
 
-function LocationPicker({ onSelect }: { onSelect: (lat: number, lng: number) => void }) {
+function MapEvents({ onSelect, onInteraction }: { onSelect: (lat: number, lng: number) => void, onInteraction: () => void }) {
   useMapEvents({
     click(e) {
       onSelect(e.latlng.lat, e.latlng.lng);
     },
+    dragstart() {
+      onInteraction();
+    },
+    zoomstart() {
+      onInteraction();
+    },
+    movestart() {
+      onInteraction();
+    }
   });
   return null;
 }
@@ -106,12 +117,14 @@ function LocationPicker({ onSelect }: { onSelect: (lat: number, lng: number) => 
 export default function MapComponent({ currentLocation, destination, onDestinationSelect, radius, language, showCompass, isDarkMode }: MapProps) {
   const t = translations[language];
   const mapRef = useRef<any>(null);
+  const [isFollowing, setIsFollowing] = useState(true);
 
   const defaultCenter: [number, number] = (currentLocation && currentLocation.latitude !== null && currentLocation.longitude !== null)
     ? [currentLocation.latitude, currentLocation.longitude] 
     : [10.762622, 106.660172]; // Default to HCMC
 
   const handleRecenter = () => {
+    setIsFollowing(true);
     if (currentLocation && currentLocation.latitude !== null && currentLocation.longitude !== null) {
       mapRef.current?.setView([currentLocation.latitude, currentLocation.longitude], 15);
     }
@@ -153,7 +166,7 @@ export default function MapComponent({ currentLocation, destination, onDestinati
         {currentLocation && currentLocation.latitude !== null && currentLocation.longitude !== null && (
           <>
             <UserLocationMarker location={currentLocation} showCompass={showCompass} />
-            <MapUpdater center={[currentLocation.latitude, currentLocation.longitude]} />
+            <MapUpdater center={[currentLocation.latitude, currentLocation.longitude]} isFollowing={isFollowing} />
           </>
         )}
 
@@ -174,7 +187,10 @@ export default function MapComponent({ currentLocation, destination, onDestinati
           </>
         )}
 
-        <LocationPicker onSelect={onDestinationSelect} />
+        <MapEvents 
+          onSelect={onDestinationSelect} 
+          onInteraction={() => setIsFollowing(false)} 
+        />
       </MapContainer>
       
       {/* Recenter Controls */}
