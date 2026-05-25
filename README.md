@@ -2,7 +2,7 @@
 
 **BusSnooze** is a Progressive Web App (PWA) that helps bus passengers avoid missing their stops. The app tracks your location via GPS and triggers an alarm as soon as you enter a pre-set radius near your destination.
 
-<img width="1080" height="2290" alt="image" src="https://github.com/TomDevX/Bus-Alarm-for-Dummies/blob/main/preview.jpg?raw=true" />
+<img width="454" height="1359" alt="image" src="https://github.com/user-attachments/assets/7c7f3bc1-7335-453c-b67d-9df883e85ebd" />
 
 ## ✨ Key Features
 
